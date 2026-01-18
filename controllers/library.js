@@ -6,10 +6,12 @@ exports.getAllBooks = async(req, res) => {
     res.status(200).json(rows);
 }
 
+// Update getABook
 exports.getABook = async(req, res) => {
     const connection = req.app.get('connection');
     const { bookid } = req.params;
-    const [rows, fields] = await connection.query('SELECT * FROM library WHERE bookid = ' + bookid);
+    // Using ? placeholder instead of string concatenation
+    const [rows] = await connection.query('SELECT * FROM library WHERE bookid = ?', [bookid]);
     res.status(200).json(rows[0]);
 }
 
@@ -23,21 +25,26 @@ exports.addBook = async(req, res) => {
     res.status(200).json(rows);
 }
 
+// Update deleteBook
 exports.deleteBook = async(req, res) => {
     const connection = req.app.get('connection');
     const { bname, edition } = req.query;
-    const [rows, fields] = await connection.query('delete from library where bname = ? and edition = ' + (edition),[bname]);
+    const [rows] = await connection.query('DELETE FROM library WHERE bname = ? AND edition = ?', [bname, edition]);
+
+    if (rows.affectedRows === 0) {
+        return res.status(404).json({ message: "Book not found" });
+    }
     res.status(200).json(rows);
 }
 
+// Update updateBook
 exports.updateBook = async(req, res) => {
     const connection = req.app.get('connection');
-    // const { oldbname, oldedition } = req.query;
     const { bookid } = req.params;
     const { bname, author, edition } = req.body;
-    const [rows, fields] = await connection.query(
-        'update library set bname = ?, author = ?, edition = ' + edition + ' where bookid = ' + bookid,
-        [bname, author]);
+    const [rows] = await connection.query(
+        'UPDATE library SET bname = ?, author = ?, edition = ? WHERE bookid = ?',
+        [bname, author, edition, bookid]);
     res.status(200).json(rows);
 }
 
